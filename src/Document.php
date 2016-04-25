@@ -10,8 +10,12 @@ class Document
     protected $path;
     protected $tree;
     protected $ext;
+
     protected $breadcrumbs = [];
+    protected $className   = [];
+
     protected $tags = [];
+    protected $priorityTags = [];
 
     public static $voidTags = [
         'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
@@ -34,16 +38,20 @@ class Document
 
         $this->tags = array_map(function($f) {
             return pathinfo($f, PATHINFO_FILENAME);
+        }, glob($this->path.'/*.'.$this->ext));
+
+        $this->priorityTags = array_map(function($f) {
+            return pathinfo($f, PATHINFO_FILENAME);
         }, glob($this->path.'/*-*.'.$this->ext));
 
         // Sort by number of parts, more === more specific, takes precedence
-        uasort($this->tags, function($a, $b) {
+        uasort($this->priorityTags, function($a, $b) {
             return substr_count($a, '-') > substr_count($b, '-') ? -1 : 1;
         });
 
-        $this->tags = array_combine(array_map(function($f) {
+        $this->priorityTags = array_combine(array_map(function($f) {
             return str_replace('-', '-.*?', $f).'$';
-        }, $this->tags), $this->tags);
+        }, $this->priorityTags), $this->priorityTags);
     }
 
     public function __toString()
@@ -75,10 +83,7 @@ class Document
     protected function expand(SimpleXMLElement $node, $inherited = '')
     {
         // Node name
-        $nodeName = $node->getName();
-
-        // Remember breadcrumbs
-        $this->breadcrumbs[] = $nodeName;
+        $nodeName = $originalNodeName = $node->getName();
 
         // Node argsuments
         $nodeAttrs = (array) $node->attributes();
@@ -88,19 +93,26 @@ class Document
             $nodeAttrs = [];
         }
 
-        if ($inherited) {
-            $nodeAttrs['__prefix'] = $inherited;
-            $nodeAttrs['__parents'] = $this->breadcrumbs;
+        // Remember breadcrumbs
+        $this->breadcrumbs[] = $nodeName;
+        // Remember className
+        if (in_array($originalNodeName, $this->tags)) {
+            $this->className[] = $nodeName;
         }
+
+        // Variables available in template
+        $nodeAttrs['__prefix']  = implode('-', array_slice($this->className, -3, 3)); //$inherited;
+        $nodeAttrs['__this']    = $nodeName;
+        $nodeAttrs['__parents'] = $this->breadcrumbs;
 
         // Expand with template
         try {
             $nodeNameSpecific = null;
 
             // Find most relevant tag template
-            foreach ($this->tags as $tagRegex => $tag) {
+            foreach ($this->priorityTags as $tagRegex => $tag) {
                 if (preg_match('/'.$tagRegex.'/', implode('-', $this->breadcrumbs), $match)) {
-                    $nodeNameSpecific = $this->tags[$tagRegex];
+                    $nodeNameSpecific = $this->priorityTags[$tagRegex];
 
                     break;
                 }
@@ -175,6 +187,12 @@ class Document
             }
         }
 
+        // Remove from breadcrumb
+        if (in_array($originalNodeName, $this->tags)) {
+            array_pop($this->className);
+        }
+
+        // Remove from className
         array_pop($this->breadcrumbs);
 
         return $newNode;
