@@ -10,6 +10,8 @@ class Document
     protected $path;
     protected $tree;
     protected $ext;
+    protected $breadcrumbs = [];
+    protected $tags = [];
 
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
@@ -24,6 +26,19 @@ class Document
         $this->tree    = $view;
         $this->path    = realpath($path);
         $this->ext     = trim($ext, ' .*');
+
+        $this->tags = array_map(function($f) {
+            return pathinfo($f, PATHINFO_FILENAME);
+        }, glob($this->path.'/*-*.'.$this->ext));
+
+        // Sort by number of parts, more === more specific, takes precedence
+        uasort($this->tags, function($a, $b) {
+            return substr_count($a, '-') > substr_count($b, '-') ? -1 : 1;
+        });
+
+        $this->tags = array_combine(array_map(function($f) {
+            return str_replace('-', '-.*?', $f).'$';
+        }, $this->tags), $this->tags);
     }
 
     public function __toString()
@@ -52,6 +67,9 @@ class Document
         // Node name
         $nodeName = $node->getName();
 
+        // Remember breadcrumbs
+        $this->breadcrumbs[] = $nodeName;
+
         // Node argsuments
         $nodeAttrs = (array) $node->attributes();
         $nodeAttrs = $nodeAttrs['@attributes'];
@@ -66,7 +84,21 @@ class Document
 
         // Expand with template
         try {
-            $template = $this->loadView($nodeName, $nodeAttrs);
+            $nodeNameSpecific = null;
+
+            foreach ($this->tags as $tagRegex => $tag) {
+                if (preg_match('/'.$tagRegex.'/', implode('-', $this->breadcrumbs), $match)) {
+                    $nodeNameSpecific = $this->tags[$tagRegex];
+                    break;
+                }
+            }
+
+            // Load template
+            try {
+                $template = $this->loadView($nodeNameSpecific, $nodeAttrs);
+            } catch (\Exception $e) {
+                $template = $this->loadView($nodeName, $nodeAttrs);
+            }
 
             // set inherited prefix
             $inherited = $inherited ? $inherited.'-'.$nodeName : $nodeName;
@@ -129,6 +161,8 @@ class Document
                 $newNode->addAttribute($k, $v);
             }
         }
+
+        array_pop($this->breadcrumbs);
 
         return $newNode;
     }
