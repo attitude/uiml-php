@@ -27,7 +27,7 @@ Every tag is as well a regular PHP. You can use any PHP function, loops, condit
 Gallery Tag Component: `tags/gallery.tag`
 
 ```php
-<div class="<?=((@$__prefix__) ? (@$__prefix__).'-' : '')?>gallery">
+<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>gallery">
     <yield/>
 </div>
 ```
@@ -35,7 +35,7 @@ Gallery Tag Component: `tags/gallery.tag`
 Header Tag Component: `tags/header.tag`
 
 ```php
-<div class="<?=((@$__prefix__) ? (@$__prefix__).'-' : '')?>header">
+<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>header">
     <h1><yield/></h1>
 </div>
 ```
@@ -43,7 +43,7 @@ Header Tag Component: `tags/header.tag`
 Slides Tag Component: `tags/slides.tag`
 
 ```php
-<div class="<?=((@$__prefix__) ? (@$__prefix__).'-' : '')?>slides">
+<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>slides">
     <yield/>
 </div>
 ```
@@ -51,7 +51,7 @@ Slides Tag Component: `tags/slides.tag`
 Image Tag Component: `tags/image.tag`
 
 ```php
-<div class="<?=((@$__prefix__) ? (@$__prefix__).'-' : '')?>image">
+<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>image">
     <img class="image-media" src="<?=$src?>" alt="<?=$alt?>" />
     <p class="image-caption"><?=$alt?></p>
 </div>
@@ -59,7 +59,7 @@ Image Tag Component: `tags/image.tag`
 
 Every tag has access to original UIML attributes and can use them within templates.
 
-Also there is special variable `$__prefix__` holds tags path as dash separated string.
+Also there is special variable `$__prefix` holds tags path as dash separated string.
 
 It all combined together produces...
 

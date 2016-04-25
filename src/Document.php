@@ -89,16 +89,19 @@ class Document
         }
 
         if ($inherited) {
-            $nodeAttrs['__prefix__'] = $inherited;
+            $nodeAttrs['__prefix'] = $inherited;
+            $nodeAttrs['__parents'] = $this->breadcrumbs;
         }
 
         // Expand with template
         try {
             $nodeNameSpecific = null;
 
+            // Find most relevant tag template
             foreach ($this->tags as $tagRegex => $tag) {
                 if (preg_match('/'.$tagRegex.'/', implode('-', $this->breadcrumbs), $match)) {
                     $nodeNameSpecific = $this->tags[$tagRegex];
+
                     break;
                 }
             }
