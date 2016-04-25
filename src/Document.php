@@ -54,9 +54,14 @@ class Document
                 header('Content-Type: text/html; charset=utf-8');
             }
 
-            return preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
+            $dom = new \DOMDocument("1.0");
+            $dom->preserveWhiteSpace = false;
+            $dom->formatOutput = true;
+            $dom->loadXML($expanded->asXML());
+            
+            return preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
                 return mb_convert_encoding($v[0], "UTF-8", "HTML-ENTITIES");
-            }, $expanded->asXML());
+            }, $dom->saveXML()));
         } catch (\Exception $e) {
             return $e->getMessage();
         }
