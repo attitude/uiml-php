@@ -13,6 +13,11 @@ class Document
     protected $breadcrumbs = [];
     protected $tags = [];
 
+    public static $voidTags = [
+        'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+        'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'
+    ];
+
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
         if (!is_string($path) || !realpath($path) || !is_dir($path)) {
@@ -58,10 +63,10 @@ class Document
             $dom->preserveWhiteSpace = false;
             $dom->formatOutput = true;
             $dom->loadXML($expanded->asXML());
-            
-            return preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
+
+            return preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
                 return mb_convert_encoding($v[0], "UTF-8", "HTML-ENTITIES");
-            }, $dom->saveXML()));
+            }, $dom->saveXML($dom, LIBXML_NOEMPTYTAG))));
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -201,6 +206,18 @@ class Document
 
         if (!$xml = simplexml_import_dom($doc, __NAMESPACE__.'\SimpleXMLElement')) {
             throw new \Exception("Please close tags in `${view}` tag/view. Must be a valid XML.", 500);
+        }
+
+        if (preg_match('|<html.*?>|', $html) && !preg_match('|<body.*?>|', $html)) {
+            return $xml->body;
+        }
+
+        if (preg_match('|<html.*?>|', $html) && preg_match('|<body.*?>|', $html)) {
+            return $xml;
+        }
+
+        if (preg_match('|<body.*?>|', $html)) {
+            return $xml->body;
         }
 
         return $xml->body->children()[0];
