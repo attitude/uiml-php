@@ -4,6 +4,21 @@
 
 Simple and descriptive User Interface Markup Language to HTML written in PHP. Uses extended `SimpleXMLElement` class.
 
+#### Features
+
+1. Automatic `<tag>` to `class="tag"` conversion
+   - tag name conversion modes `\UIML\Document::$tagJoiner`:
+       - any string, eg. `'__'` BEM style, default is `'-'`
+       - camel case - `'^'`
+   - level of depth `\UIML\Document::$classJoiner` to use for class name
+     generation, default is `3`
+   - to skip some UIML tags, `\UIML\Document::$skipTags = ['some-tag-to-skip'];`,
+     `'*'` skips all tags, disable automatic `<tag>` to `class="tag"` conversion
+   - to change `tag-name` to `custom-name` use `<tag class="custom-name">`
+   - to preserve original  class of `<tag class="original-class">`,
+     set `\UIML\Document::$preserveTagClass = true;`, default is `false`
+2. Tag `tag-attributes="value"` available as local `$tagAttr = 'value'` variables
+
 ## Example
 
 ### UIML view: `views/gallery.uiml`
@@ -27,7 +42,7 @@ Every tag is as well a regular PHP. You can use any PHP function, loops, condit
 Gallery Tag Component: `tags/gallery.tag`
 
 ```php
-<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>gallery">
+<div>
     <yield/>
 </div>
 ```
@@ -35,7 +50,7 @@ Gallery Tag Component: `tags/gallery.tag`
 Header Tag Component: `tags/header.tag`
 
 ```php
-<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>header">
+<div>
     <h1><yield/></h1>
 </div>
 ```
@@ -43,7 +58,7 @@ Header Tag Component: `tags/header.tag`
 Slides Tag Component: `tags/slides.tag`
 
 ```php
-<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>slides">
+<div>
     <yield/>
 </div>
 ```
@@ -51,7 +66,7 @@ Slides Tag Component: `tags/slides.tag`
 Image Tag Component: `tags/image.tag`
 
 ```php
-<div class="<?=((@$__prefix) ? (@$__prefix).'-' : '')?>image">
+<div>
     <img class="image-media" src="<?=$src?>" alt="<?=$alt?>" />
     <p class="image-caption"><?=$alt?></p>
 </div>
@@ -66,24 +81,25 @@ It all combined together produces...
 ### Result:
 
 ```php
+
 <div class="gallery">
-    <div class="gallery-header">
+    <div class="gallery__header">
         <h1>Very <em>nice</em> gallery</h1>
+        </div>
+    <div class="gallery__slides">
+    <div class="gallery__slides__image" src="123.gif" alt="123">
+        <img class="image-media" src="123.gif" alt="123">
+        <p class="image-caption">123</p>
     </div>
-    <div class="gallery-slides">
-        <div class="gallery-slides-image">
-            <img class="image-media" src="123.gif" alt="123"/>
-            <p class="image-caption">123</p>
-        </div>
-        <div class="gallery-slides-image">
-            <img class="image-media" src="456.gif" alt="456"/>
-            <p class="image-caption">456</p>
-        </div>
-        <div class="gallery-slides-image">
-            <img class="image-media" src="789.gif" alt="789"/>
-            <p class="image-caption">789</p>
-        </div>
+    <div class="gallery__slides__image" src="456.gif" alt="456">
+        <img class="image-media" src="456.gif" alt="456">
+        <p class="image-caption">456</p>
     </div>
+    <div class="gallery__slides__image" src="789.gif" alt="789">
+        <img class="image-media" src="789.gif" alt="789">
+        <p class="image-caption">789</p>
+    </div>
+  </div>
 </div>
 ```
 

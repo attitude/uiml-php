@@ -54,12 +54,12 @@ class Document
     public static $classLenth  = 3;
 
     /**
-     * Perserves original UILM class if enabled
+     * Preserves original UILM class if enabled
      *
      * Usually not needed, because node name is being transformed and
      * first class *word* is used instead of class name to build new class
      */
-    public static $perserveTagClass = false;
+    public static $preserveTagClass = false;
 
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
@@ -107,7 +107,7 @@ class Document
             }
 
             $dom = new \DOMDocument("1.0");
-            $dom->preserveWhiteSpace = false;
+            $dom->preservveWhiteSpace = false;
             $dom->formatOutput = true;
             $dom->loadXML($expanded->asXML());
 
@@ -215,8 +215,8 @@ class Document
             foreach ($nodeAttrs as $k => $v) {
                 if (!$template[$k]) {
                     $template->addAttribute($k, $v);
-                } elseif (static::$perserveTagClass && $k === 'class') {
-                    // Original UIML had class, so perserve it even though template
+                } elseif (static::$preserveTagClass && $k === 'class') {
+                    // Original UIML had class, so preserve it even though template
                     // overwrited class attribute by defining new
                     $template['class'] = $v.' '.$template['class'];
                 }
