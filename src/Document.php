@@ -143,7 +143,7 @@ class Document
                 }
             }
 
-            if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($nodeName, $this->tags)) {
+            if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($originalNodeName, $this->tags)) {
                 // Add node name to className array, but use first class of list if class is present
                 if ($node['class'] && strlen(trim($node['class'])) > 0) {
                     if (static::$tagJoiner === '^') {
@@ -262,7 +262,7 @@ class Document
         }
 
         // Remove from breadcrumb
-        if (in_array($originalNodeName, $this->tags)) {
+        if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($originalNodeName, $this->tags)) {
             array_pop($this->className);
         }
 
