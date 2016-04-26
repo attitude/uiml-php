@@ -17,10 +17,31 @@ class Document
     protected $tags = [];
     protected $priorityTags = [];
 
+    /**
+     * List of HTML5 void tags
+     */
     public static $voidTags = [
         'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
         'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'
     ];
+
+    /**
+     * BEM naming convention
+     */
+    public static $classJoiner = '__';
+
+    /**
+     * Whether to keep '-' in tagname
+     * '-' >>> `multi-tag-names`
+     * '' >>> `multitagnames` (removes dash)
+     */
+    public static $tagJoiner   = '-';
+
+    /**
+     * Default number of class words to use when class is missing
+     * Set 0 to disable class replacing.
+     */
+    public static $classLenth  = 3;
 
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
@@ -80,38 +101,55 @@ class Document
         }
     }
 
-    protected function expand(SimpleXMLElement $node, $inherited = '')
+    protected function expand(SimpleXMLElement $node)
     {
         // Node name
         $nodeName = $originalNodeName = $node->getName();
 
         // Node argsuments
-        $nodeAttrs = (array) $node->attributes();
-        $nodeAttrs = $nodeAttrs['@attributes'];
+        $localVars = (array) $node->attributes();
+        $localVars = (array) $localVars['@attributes'];
 
-        if (!$nodeAttrs) {
-            $nodeAttrs = [];
-        }
+        // Pass original node name down to tag template
+        $localVars['nodeName']    = $nodeName;
 
-        // Remember breadcrumbs
+        // Pass array of breadcrumbs down to tag template
+        $localVars['nodeParents'] = $this->breadcrumbs;
+
+        // Add node name to full breadcrumb array
         $this->breadcrumbs[] = $nodeName;
-        // Remember className
+
+        // Add node name to className array
         if (in_array($originalNodeName, $this->tags)) {
-            $this->className[] = $nodeName;
+            // Use first class of list
+            if ($node['class'] && strlen(trim($node['class'])) > 0) {
+                $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
+            } else {
+                $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+            }
         }
 
-        // Variables available in template
-        $nodeAttrs['__prefix']  = implode('-', array_slice($this->className, -3, 3)); //$inherited;
-        $nodeAttrs['__this']    = $nodeName;
-        $nodeAttrs['__parents'] = $this->breadcrumbs;
+        // Variables available in template (5 should be enough)
+        $localVars['class5']  = implode(static::$classJoiner, array_slice($this->className, -5, 5));
+        $localVars['class4']  = implode(static::$classJoiner, array_slice($this->className, -4, 4));
+        $localVars['class3']  = implode(static::$classJoiner, array_slice($this->className, -3, 3));
+        $localVars['class2']  = implode(static::$classJoiner, array_slice($this->className, -2, 2));
+        $localVars['class1']  = $nodeName;
+
+        // Default class variable to be passed down to tag template
+        if ((int) static::$classLenth > 0) {
+            $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLenth, static::$classLenth));
+        } else {
+            $localVars['class'] = $localVars['class3'];
+        }
 
         // Expand with template
         try {
             $nodeNameSpecific = null;
 
-            // Find most relevant tag template
+            // Find most relevant tag template, more specific is used
             foreach ($this->priorityTags as $tagRegex => $tag) {
-                if (preg_match('/'.$tagRegex.'/', implode('-', $this->breadcrumbs), $match)) {
+                if (preg_match('/'.$tagRegex.'/', implode(static::$classJoiner, $this->breadcrumbs), $match)) {
                     $nodeNameSpecific = $this->priorityTags[$tagRegex];
 
                     break;
@@ -120,13 +158,10 @@ class Document
 
             // Load template
             try {
-                $template = $this->loadView($nodeNameSpecific, $nodeAttrs);
+                $template = $this->loadView($nodeNameSpecific, $localVars);
             } catch (\Exception $e) {
-                $template = $this->loadView($nodeName, $nodeAttrs);
+                $template = $this->loadView($nodeName, $localVars);
             }
-
-            // set inherited prefix
-            $inherited = $inherited ? $inherited.'-'.$nodeName : $nodeName;
 
             // xpath('//*/yield/parent::*')
             // if ($yieldNode = $template->sortedXPath('//*/yield')) {
@@ -141,6 +176,27 @@ class Document
                 $yieldNode->appendChildren($node);
                 $yieldNode->remove();
             }
+
+            // Clone original arguments
+            if (!$template['class']) {
+                $template->addAttribute('class', $localVars['class']);
+            }
+
+            $nodeAttrs = (array) $node->attributes();
+            $nodeAttrs = (array) $nodeAttrs['@attributes'];
+
+            foreach ($nodeAttrs as $k => $v) {
+                if (!$template[$k]) {
+                    $template->addAttribute($k, $v);
+                } elseif ($k === 'class') {
+                    // Original UIML had class, so perserve it even though template
+                    // overwrited class attribute by defining new
+                    $template['class'] = $v.' '.$template['class'];
+                }
+            }
+
+            // Post fix for duplicates
+            $template['class'] = implode(' ', array_unique(explode(' ', $template['class'])));
 
             // replace node with new expanded node by template
             $node = $template;
@@ -166,7 +222,7 @@ class Document
                 if ($domNodeItem->nodeType !== 1) {
                     $nodeString .= $domNodeItem->nodeValue;
                 } else {
-                    $newXMLChild = $this->expand(simplexml_import_dom($domNodeItem, __NAMESPACE__.'\SimpleXMLElement'), $inherited);
+                    $newXMLChild = $this->expand(simplexml_import_dom($domNodeItem, __NAMESPACE__.'\SimpleXMLElement'));
                     $nodeString.= $newXMLChild->asXML();
                 }
             }
