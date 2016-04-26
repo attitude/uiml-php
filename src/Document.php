@@ -32,6 +32,7 @@ class Document
 
     /**
      * Whether to keep '-' in tagname
+     *
      * '-' >>> `multi-tag-names`
      * '' >>> `multitagnames` (removes dash)
      */
@@ -39,9 +40,18 @@ class Document
 
     /**
      * Default number of class words to use when class is missing
+     *
      * Set 0 to disable class replacing.
      */
     public static $classLenth  = 3;
+
+    /**
+     * Perserves original UILM class if enabled
+     *
+     * Usually not needed, because node name is being transformed and
+     * first class *word* is used instead of class name to build new class
+     */
+    public static $perserveTagClass = false;
 
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
@@ -119,30 +129,6 @@ class Document
         // Add node name to full breadcrumb array
         $this->breadcrumbs[] = $nodeName;
 
-        // Add node name to className array
-        if (in_array($originalNodeName, $this->tags)) {
-            // Use first class of list
-            if ($node['class'] && strlen(trim($node['class'])) > 0) {
-                $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
-            } else {
-                $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
-            }
-        }
-
-        // Variables available in template (5 should be enough)
-        $localVars['class5']  = implode(static::$classJoiner, array_slice($this->className, -5, 5));
-        $localVars['class4']  = implode(static::$classJoiner, array_slice($this->className, -4, 4));
-        $localVars['class3']  = implode(static::$classJoiner, array_slice($this->className, -3, 3));
-        $localVars['class2']  = implode(static::$classJoiner, array_slice($this->className, -2, 2));
-        $localVars['class1']  = $nodeName;
-
-        // Default class variable to be passed down to tag template
-        if ((int) static::$classLenth > 0) {
-            $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLenth, static::$classLenth));
-        } else {
-            $localVars['class'] = $localVars['class3'];
-        }
-
         // Expand with template
         try {
             $nodeNameSpecific = null;
@@ -161,6 +147,27 @@ class Document
                 $template = $this->loadView($nodeNameSpecific, $localVars);
             } catch (\Exception $e) {
                 $template = $this->loadView($nodeName, $localVars);
+            }
+
+            // Add node name to className array, but use first class of list if class is present
+            if ($node['class'] && strlen(trim($node['class'])) > 0) {
+                $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
+            } else {
+                $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+            }
+
+            // Variables available in template (5 should be enough)
+            $localVars['class5']  = implode(static::$classJoiner, array_slice($this->className, -5, 5));
+            $localVars['class4']  = implode(static::$classJoiner, array_slice($this->className, -4, 4));
+            $localVars['class3']  = implode(static::$classJoiner, array_slice($this->className, -3, 3));
+            $localVars['class2']  = implode(static::$classJoiner, array_slice($this->className, -2, 2));
+            $localVars['class1']  = $nodeName;
+
+            // Default class variable to be passed down to tag template
+            if ((int) static::$classLenth > 0) {
+                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLenth, static::$classLenth));
+            } else {
+                $localVars['class'] = $localVars['class3'];
             }
 
             // xpath('//*/yield/parent::*')
@@ -188,7 +195,7 @@ class Document
             foreach ($nodeAttrs as $k => $v) {
                 if (!$template[$k]) {
                     $template->addAttribute($k, $v);
-                } elseif ($k === 'class') {
+                } elseif (static::$perserveTagClass && $k === 'class') {
                     // Original UIML had class, so perserve it even though template
                     // overwrited class attribute by defining new
                     $template['class'] = $v.' '.$template['class'];
