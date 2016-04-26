@@ -26,6 +26,13 @@ class Document
     ];
 
     /**
+     * Skip these tags for tag-to-class conversion when expanding UIML tag
+     *
+     * Use `*` to skip all
+     */
+    public static $skipTags = [];
+
+    /**
      * BEM naming convention
      */
     public static $classJoiner = '__';
@@ -143,19 +150,21 @@ class Document
                 }
             }
 
-            if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($originalNodeName, $this->tags)) {
-                // Add node name to className array, but use first class of list if class is present
-                if ($node['class'] && strlen(trim($node['class'])) > 0) {
-                    if (static::$tagJoiner === '^') {
-                        $this->className[] = $this->camelCase(array_shift(explode(' ', $node['class'])));
+            if (!(is_string(static::$skipTags) && static::$skipTags === '*') && !in_array($originalNodeName, static::$skipTags)) {
+                if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($originalNodeName, $this->tags)) {
+                    // Add node name to className array, but use first class of list if class is present
+                    if ($node['class'] && strlen(trim($node['class'])) > 0) {
+                        if (static::$tagJoiner === '^') {
+                            $this->className[] = $this->camelCase(array_shift(explode(' ', $node['class'])));
+                        } else {
+                            $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
+                        }
                     } else {
-                        $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
-                    }
-                } else {
-                    if (static::$tagJoiner === '^') {
-                        $this->className[] = $this->camelCase($nodeName);
-                    } else {
-                        $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+                        if (static::$tagJoiner === '^') {
+                            $this->className[] = $this->camelCase($nodeName);
+                        } else {
+                            $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+                        }
                     }
                 }
             }
@@ -196,7 +205,7 @@ class Document
             }
 
             // Clone original arguments
-            if (!$template['class']) {
+            if ($localVars['class'] && !$template['class']) {
                 $template->addAttribute('class', $localVars['class']);
             }
 
@@ -214,7 +223,9 @@ class Document
             }
 
             // Post fix for duplicates
-            $template['class'] = implode(' ', array_unique(explode(' ', $template['class'])));
+            if ($template['class']) {
+                $template['class'] = implode(' ', array_unique(explode(' ', $template['class'])));
+            }
 
             // replace node with new expanded node by template
             $node = $template;
