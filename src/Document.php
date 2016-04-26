@@ -128,6 +128,8 @@ class Document
         $localVars = (array) $node->attributes();
         $localVars = (array) $localVars['@attributes'];
 
+        $localVars['__proto__'] = $localVars;
+
         // Pass original node name down to tag template
         $localVars['nodeName']    = $nodeName;
 
