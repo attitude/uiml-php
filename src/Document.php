@@ -53,14 +53,6 @@ class Document
      */
     public static $classLength  = 2;
 
-    /**
-     * Preserves original UILM class if enabled
-     *
-     * Usually not needed, because node name is being transformed and
-     * first class *word* is used instead of class name to build new class
-     */
-    public static $preserveTagClass = false;
-
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
         if (!is_string($path) || !realpath($path) || !is_dir($path)) {
@@ -121,6 +113,11 @@ class Document
 
     protected function expand(SimpleXMLElement $node)
     {
+        if ((int) static::$classLength < 1) {
+            trigger_error(__NAMESPACE__.'::'.CLASS__.': Static variable $classLength should be at least 1. Using default: 2.');
+            static::$classLength = 1;
+        }
+
         // Node name
         $nodeName = $originalNodeName = $node->getName();
 
@@ -154,12 +151,12 @@ class Document
 
             if (!(is_string(static::$skipTags) && static::$skipTags === '*') && !in_array($originalNodeName, static::$skipTags)) {
                 if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($originalNodeName, $this->tags)) {
-                    // Add node name to className array, but use first class of list if class is present
-                    if ($node['class'] && strlen(trim($node['class'])) > 0) {
+                    // Add node name to className array, but use name if name attritute is present
+                    if ($node['name']) {
                         if (static::$tagJoiner === '^') {
-                            $this->className[] = $this->camelCase(array_shift(explode(' ', $node['class'])));
+                            $this->className[] = $this->camelCase(trim($node['name']));
                         } else {
-                            $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
+                            $this->className[] = preg_replace('|[^\w\d]+|', static::$tagJoiner, trim($node['name']));
                         }
                     } else {
                         if (static::$tagJoiner === '^') {
@@ -179,11 +176,7 @@ class Document
             $localVars['class1']  = implode(static::$classJoiner, array_slice($this->className, -1));
 
             // Default class variable to be passed down to tag template
-            if ((int) static::$classLength > 0) {
-                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength));
-            } else {
-                $localVars['class'] = $localVars['class3'];
-            }
+            $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength));
 
             // Load template
             try {
@@ -210,14 +203,22 @@ class Document
             if ($localVars['class']) {
                 if (!$template['class']) {
                     $template->addAttribute('class', $localVars['class']);
-                } elseif (static::$preserveTagClass) {
+                } else {
                     $template['class'] = $localVars['class'].' '.$template['class'];
+                }
+            }
+
+            if (@$localVars['__proto__']['class']) {
+                if (!$template['class']) {
+                    $template->addAttribute('class', $localVars['__proto__']['class']);
+                } else {
+                    $template['class'] = $template['class'].' '.$localVars['__proto__']['class'];
                 }
             }
 
             // Post fix for duplicates
             if ($template['class']) {
-                $template['class'] = implode(' ', array_unique(explode(' ', $template['class'])));
+                $template['class'] = implode(' ', array_filter(array_unique(explode(' ', trim($template['class'])))));
             }
 
             // replace node with new expanded node by template
