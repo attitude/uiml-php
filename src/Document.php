@@ -172,15 +172,15 @@ class Document
             }
 
             // Variables available in template (5 should be enough)
-            $localVars['class5']  = implode(static::$classJoiner, array_slice($this->className, -5, 5));
-            $localVars['class4']  = implode(static::$classJoiner, array_slice($this->className, -4, 4));
-            $localVars['class3']  = implode(static::$classJoiner, array_slice($this->className, -3, 3));
-            $localVars['class2']  = implode(static::$classJoiner, array_slice($this->className, -2, 2));
+            $localVars['class5']  = implode(static::$classJoiner, array_slice($this->className, -5));
+            $localVars['class4']  = implode(static::$classJoiner, array_slice($this->className, -4));
+            $localVars['class3']  = implode(static::$classJoiner, array_slice($this->className, -3));
+            $localVars['class2']  = implode(static::$classJoiner, array_slice($this->className, -2));
             $localVars['class1']  = $nodeName;
 
             // Default class variable to be passed down to tag template
             if ((int) static::$classLength > 0) {
-                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength, static::$classLength));
+                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength));
             } else {
                 $localVars['class'] = $localVars['class3'];
             }
