@@ -270,9 +270,20 @@ class Document
         return $newNode;
     }
 
+    protected function camelCase($value = '', $separators = ' -_')
+    {
+        return lcfirst(implode('', array_map('ucfirst', explode(' ', trim(strtr($value, $separators, str_repeat(' ', strlen($separators))))))));
+    }
+
     protected function loadView($view, array $args = [])
     {
         $viewFile = $this->path.'/'.$view.'.'.$this->ext;
+
+        // Change arguments from `w3c-standard` to `camelCase`
+        foreach ($args as $k => $v) {
+            $args[$this->camelCase($k)] = $v;
+        }
+
         try {
             return self::loadUIML($viewFile, $args);
         } catch (\Exception $e) {
