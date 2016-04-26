@@ -143,25 +143,20 @@ class Document
                 }
             }
 
-            // Load template
-            try {
-                $template = $this->loadView($nodeNameSpecific, $localVars);
-            } catch (\Exception $e) {
-                $template = $this->loadView($nodeName, $localVars);
-            }
-
-            // Add node name to className array, but use first class of list if class is present
-            if ($node['class'] && strlen(trim($node['class'])) > 0) {
-                if (static::$tagJoiner === '^') {
-                    $this->className[] = str_replace('-', static::$tagJoiner, lcfirst(implode('', array_map('ucfirst', explode('-', trim(array_shift(explode('-', $node['class']))))))));
+            if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($nodeName, $this->tags)) {
+                // Add node name to className array, but use first class of list if class is present
+                if ($node['class'] && strlen(trim($node['class'])) > 0) {
+                    if (static::$tagJoiner === '^') {
+                        $this->className[] = $this->camelCase(array_shift(explode(' ', $node['class'])));
+                    } else {
+                        $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
+                    }
                 } else {
-                    $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
-                }
-            } else {
-                if (static::$tagJoiner === '^') {
-                    $this->className[] = str_replace('-', static::$tagJoiner, lcfirst(implode('', array_map('ucfirst', explode('-', $nodeName)))));
-                } else {
-                    $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+                    if (static::$tagJoiner === '^') {
+                        $this->className[] = $this->camelCase($nodeName);
+                    } else {
+                        $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+                    }
                 }
             }
 
@@ -177,6 +172,13 @@ class Document
                 $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLenth, static::$classLenth));
             } else {
                 $localVars['class'] = $localVars['class3'];
+            }
+
+            // Load template
+            try {
+                $template = $this->loadView($nodeNameSpecific, $localVars);
+            } catch (\Exception $e) {
+                $template = $this->loadView($nodeName, $localVars);
             }
 
             // xpath('//*/yield/parent::*')
