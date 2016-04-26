@@ -11,7 +11,8 @@ Simple and descriptive User Interface Markup Language to HTML written in PHP. Us
        - any string, eg. `'__'` BEM style, default is `'-'`
        - camel case - `'^'`
    - level of depth `\UIML\Document::$classJoiner` to use for class name
-     generation, default is `3`
+     generation, default is `2` (component-element), that match
+     Components CSS strategy
    - to skip some UIML tags, `\UIML\Document::$skipTags = ['some-tag-to-skip'];`,
      `'*'` skips all tags, disable automatic `<tag>` to `class="tag"` conversion
    - to change `tag-name` to `custom-name` use `<tag class="custom-name">`

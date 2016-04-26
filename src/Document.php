@@ -51,7 +51,7 @@ class Document
      *
      * Set 0 to disable class replacing.
      */
-    public static $classLenth  = 3;
+    public static $classLength  = 2;
 
     /**
      * Preserves original UILM class if enabled
@@ -179,8 +179,8 @@ class Document
             $localVars['class1']  = $nodeName;
 
             // Default class variable to be passed down to tag template
-            if ((int) static::$classLenth > 0) {
-                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLenth, static::$classLenth));
+            if ((int) static::$classLength > 0) {
+                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength, static::$classLength));
             } else {
                 $localVars['class'] = $localVars['class3'];
             }
