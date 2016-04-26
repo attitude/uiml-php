@@ -304,7 +304,7 @@ class Document
 
         ob_start();
         include $file;
-        $html = ob_get_contents();
+        $html = trim(ob_get_contents());
         ob_end_clean();
 
         $doc = new \DOMDocument;
@@ -314,15 +314,15 @@ class Document
             throw new \Exception("Please close tags in `${view}` tag/view. Must be a valid XML.", 500);
         }
 
-        if (preg_match('|<html.*?>|', $html) && !preg_match('|<body.*?>|', $html)) {
+        if (preg_match('|^<html.*?>|', $html) && !preg_match('|<body.*?>|', $html)) {
             return $xml->body;
         }
 
-        if (preg_match('|<html.*?>|', $html) && preg_match('|<body.*?>|', $html)) {
+        if (preg_match('|^<html.*?>|', $html) && preg_match('|<body.*?>|', $html)) {
             return $xml;
         }
 
-        if (preg_match('|<body.*?>|', $html)) {
+        if (preg_match('|^<body.*?>|', $html)) {
             return $xml->body;
         }
 

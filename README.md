@@ -39,6 +39,8 @@ Core structure of future HTML. UIML file is a regular PHP. You can use any PHP 
 
 Every tag is as well a regular PHP. You can use any PHP function, loops, conditionals as much as you wish.
 
+*Note: `<body>` tags are skipped if not used as HTML body tag*
+
 Gallery Tag Component: `tags/gallery.tag`
 
 ```php
