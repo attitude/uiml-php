@@ -206,9 +206,13 @@ class Document
                 $yieldNode->remove();
             }
 
-            // Clone original arguments
-            if ($localVars['class'] && !$template['class']) {
-                $template->addAttribute('class', $localVars['class']);
+            // Pass class
+            if ($localVars['class']) {
+                if (!$template['class']) {
+                    $template->addAttribute('class', $localVars['class']);
+                } elseif (static::$preserveTagClass) {
+                    $template['class'] = $localVars['class'].' '.$template['class'];
+                }
             }
 
             // Post fix for duplicates
