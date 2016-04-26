@@ -211,19 +211,6 @@ class Document
                 $template->addAttribute('class', $localVars['class']);
             }
 
-            $nodeAttrs = (array) $node->attributes();
-            $nodeAttrs = (array) $nodeAttrs['@attributes'];
-
-            foreach ($nodeAttrs as $k => $v) {
-                if (!$template[$k]) {
-                    $template->addAttribute($k, $v);
-                } elseif (static::$preserveTagClass && $k === 'class') {
-                    // Original UIML had class, so preserve it even though template
-                    // overwrited class attribute by defining new
-                    $template['class'] = $v.' '.$template['class'];
-                }
-            }
-
             // Post fix for duplicates
             if ($template['class']) {
                 $template['class'] = implode(' ', array_unique(explode(' ', $template['class'])));
