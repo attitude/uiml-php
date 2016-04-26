@@ -107,7 +107,7 @@ class Document
             }
 
             $dom = new \DOMDocument("1.0");
-            $dom->preservveWhiteSpace = false;
+            $dom->preserveWhiteSpace = false;
             $dom->formatOutput = true;
             $dom->loadXML($expanded->asXML());
 
