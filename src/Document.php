@@ -34,9 +34,10 @@ class Document
      * Whether to keep '-' in tagname
      *
      * '-' >>> `multi-tag-names`
-     * '' >>> `multitagnames` (removes dash)
+     * '' >>>  `multitagnames` (removes dash)
+     * '^' >>> `multiTagNames` camelCase
      */
-    public static $tagJoiner   = '-';
+    public static $tagJoiner  = '-';
 
     /**
      * Default number of class words to use when class is missing
@@ -151,9 +152,17 @@ class Document
 
             // Add node name to className array, but use first class of list if class is present
             if ($node['class'] && strlen(trim($node['class'])) > 0) {
-                $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
+                if (static::$tagJoiner === '^') {
+                    $this->className[] = str_replace('-', static::$tagJoiner, lcfirst(implode('', array_map('ucfirst', explode('-', trim(array_shift(explode('-', $node['class']))))))));
+                } else {
+                    $this->className[] = str_replace('-', static::$tagJoiner, trim(array_shift(explode(' ', $node['class']))));
+                }
             } else {
-                $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+                if (static::$tagJoiner === '^') {
+                    $this->className[] = str_replace('-', static::$tagJoiner, lcfirst(implode('', array_map('ucfirst', explode('-', $nodeName)))));
+                } else {
+                    $this->className[] = str_replace('-', static::$tagJoiner, $nodeName);
+                }
             }
 
             // Variables available in template (5 should be enough)
