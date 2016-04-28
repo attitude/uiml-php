@@ -111,7 +111,7 @@ class Document
         }
     }
 
-    protected function expand(SimpleXMLElement $node)
+    protected function expand(SimpleXMLElement $node, $scope = '')
     {
         if ((int) static::$classLength < 1) {
             trigger_error(__NAMESPACE__.'::'.CLASS__.': Static variable $classLength should be at least 1. Using default: 2.');
@@ -168,15 +168,32 @@ class Document
                 }
             }
 
+            // Remember the current tag class
+            $currentTagClassName = array_slice($this->className, -1 * static::$classLength, 1);
+            
+            if (!empty($currentTagClassName)) {
+                $currentTagClassName = $currentTagClassName[0];
+            }
+
             // Variables available in template (5 should be enough)
-            $localVars['class5']  = implode(static::$classJoiner, array_slice($this->className, -5));
-            $localVars['class4']  = implode(static::$classJoiner, array_slice($this->className, -4));
-            $localVars['class3']  = implode(static::$classJoiner, array_slice($this->className, -3));
-            $localVars['class2']  = implode(static::$classJoiner, array_slice($this->className, -2));
-            $localVars['class1']  = implode(static::$classJoiner, array_slice($this->className, -1));
+            $localVars['class5'] = implode(static::$classJoiner, array_slice($this->className, -5));
+            $localVars['class4'] = implode(static::$classJoiner, array_slice($this->className, -4));
+            $localVars['class3'] = implode(static::$classJoiner, array_slice($this->className, -3));
+            $localVars['class2'] = implode(static::$classJoiner, array_slice($this->className, -2));
+            $localVars['class1'] = implode(static::$classJoiner, array_slice($this->className, -1));
 
             // Default class variable to be passed down to tag template
             $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength));
+
+            // Check for new scope
+            if (!empty($scope) && $currentTagClassName !== $scope) {
+                $localVars['class5'] = $scope.static::$classJoiner.$localVars['class5'];
+                $localVars['class4'] = $scope.static::$classJoiner.$localVars['class4'];
+                $localVars['class3'] = $scope.static::$classJoiner.$localVars['class3'];
+                $localVars['class2'] = $scope.static::$classJoiner.$localVars['class2'];
+                $localVars['class1'] = $scope.static::$classJoiner.$localVars['class1'];
+                $localVars['class']  = $scope.static::$classJoiner.$localVars['class'];
+            }
 
             // Load template
             try {
@@ -241,11 +258,16 @@ class Document
             $domNode = dom_import_simplexml($node);
             $nodeString = '';
 
+            // Current has scope
+            if (isset($localVars['scope'])) {
+                $scope = $localVars['class1'];
+            }
+
             foreach ($domNode->childNodes as $domNodeItem) {
                 if ($domNodeItem->nodeType !== 1) {
                     $nodeString .= $domNodeItem->nodeValue;
                 } else {
-                    $newXMLChild = $this->expand(simplexml_import_dom($domNodeItem, __NAMESPACE__.'\SimpleXMLElement'));
+                    $newXMLChild = $this->expand(simplexml_import_dom($domNodeItem, __NAMESPACE__.'\SimpleXMLElement'), $scope);
                     $nodeString.= $newXMLChild->asXML();
                 }
             }
