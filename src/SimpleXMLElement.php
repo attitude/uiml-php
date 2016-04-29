@@ -42,8 +42,15 @@ class SimpleXMLElement extends \SimpleXMLElement
         $doc = $domTarget->ownerDocument;
         $fragment = $doc->createDocumentFragment();
 
+        $c = 0;
+
         foreach ($domNode->childNodes as $child){
             $fragment->appendChild($doc->importNode($child->cloneNode(true), true));
+            $c++;
+        }
+
+        if ($c === 0) {
+            return;
         }
 
         if ($domTarget->nextSibling) {
