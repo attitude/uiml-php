@@ -139,13 +139,15 @@ class Document
         // Expand with template
         try {
             $nodeNameSpecific = null;
+            $nodeNameSpecificity = null;
 
             // Find most relevant tag template, more specific is used
             foreach ($this->priorityTags as $tagRegex => $tag) {
                 if (preg_match('/'.$tagRegex.'/', implode(static::$classJoiner, $this->breadcrumbs), $match)) {
-                    $nodeNameSpecific = $this->priorityTags[$tagRegex];
-
-                    break;
+                    if ($nodeNameSpecificity === null || (substr_count($match[0], static::$tagJoiner) < $nodeNameSpecificity)) {
+                        $nodeNameSpecificity = substr_count($match[0], static::$tagJoiner) - substr_count($tagRegex, static::$tagJoiner);
+                        $nodeNameSpecific = $this->priorityTags[$tagRegex];
+                    }
                 }
             }
 
