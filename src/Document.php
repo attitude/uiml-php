@@ -18,6 +18,11 @@ class Document
     protected $priorityTags = [];
 
     /**
+     * List of filters (callable functions)
+     */
+    protected $filters = [];
+
+    /**
      * List of HTML5 void tags
      */
     public static $voidTags = [
@@ -52,6 +57,7 @@ class Document
      * Set 0 to disable class replacing.
      */
     public static $classLength  = 2;
+
 
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
@@ -337,6 +343,12 @@ class Document
         $html = trim(ob_get_contents());
         ob_end_clean();
 
+        if (isset($this->filters['tag']) && !empty($this->filters['tag'])) {
+            foreach ($this->filters['tag'] as $filter) {
+                $html = call_user_func($filter, $html);
+            }
+        }
+
         $doc = new \DOMDocument;
         $doc->loadHTML('<?xml encoding="UTF-8">'.$html);
 
@@ -357,5 +369,40 @@ class Document
         }
 
         return $xml->body->children()[0];
+    }
+
+    /**
+     * Public API to register tag filter
+     *
+     * @param callable $f Callable filter to register
+     *
+     */
+    public function registerTagFilter(callable $f)
+    {
+        $this->registerFilter($f, 'tag');
+
+        return $this;
+    }
+
+    /**
+     * General method to register a filter
+     *
+     * @param callable $f Callable filter to register
+     * @param string $type Namespace for filter
+     *
+     */
+    protected function registerFilter(callable $f, $type = 'default')
+    {
+        if (!is_string($type) || strlen(trim($type)) === 0) {
+            throw new \Exception("Type must be a non-empty string", 500);
+        }
+
+        if (!isset($this->filters[$type])) {
+            $this->filters[$type] = [];
+        }
+
+        $this->filters[$type][] = $f;
+
+        return $this;
     }
 }
