@@ -170,7 +170,7 @@ class Document
 
             // Remember the current tag class
             $currentTagClassName = array_slice($this->className, -1 * static::$classLength, 1);
-            
+
             if (!empty($currentTagClassName)) {
                 $currentTagClassName = $currentTagClassName[0];
             }
@@ -187,6 +187,7 @@ class Document
 
             // Check for new scope
             if (!empty($scope) && $currentTagClassName !== $scope) {
+                // @TODO overlapping of prefix class name for higher classes (class5)
                 $localVars['class5'] = $scope.static::$classJoiner.$localVars['class5'];
                 $localVars['class4'] = $scope.static::$classJoiner.$localVars['class4'];
                 $localVars['class3'] = $scope.static::$classJoiner.$localVars['class3'];
@@ -280,7 +281,7 @@ class Document
                 $newNode->addAttribute($k, $v);
             }
         } else {
-            $newNode = simplexml_load_string('<'.$nodeName.'>'.htmlspecialchars($node, ENT_HTML5, 'UTF-8').'</'.$nodeName.'>', __NAMESPACE__.'\SimpleXMLElement');
+            $newNode = simplexml_load_string('<'.$nodeName.'>'.htmlspecialchars(trim($node), ENT_HTML5, 'UTF-8').'</'.$nodeName.'>', __NAMESPACE__.'\SimpleXMLElement');
 
             // Clone attributes
             foreach ($nodeAttrs as $k => $v) {
