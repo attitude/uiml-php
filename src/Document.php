@@ -73,15 +73,15 @@ class Document
 
         $this->priorityTags = array_map(function($f) {
             return pathinfo($f, PATHINFO_FILENAME);
-        }, glob($this->path.'/*-*.'.$this->ext));
+        }, glob($this->path.'/*'.static::$tagJoiner.'*.'.$this->ext));
 
         // Sort by number of parts, more === more specific, takes precedence
         uasort($this->priorityTags, function($a, $b) {
-            return substr_count($a, '-') > substr_count($b, '-') ? -1 : 1;
+            return substr_count($a, static::$tagJoiner) > substr_count($b, '-') ? -1 : 1;
         });
 
         $this->priorityTags = array_combine(array_map(function($f) {
-            return str_replace('-', '-.*?', $f).'$';
+            return str_replace(static::$tagJoiner, static::$tagJoiner.'.*?', $f).'$';
         }, $this->priorityTags), $this->priorityTags);
     }
 
