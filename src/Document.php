@@ -202,13 +202,19 @@ class Document
 
             // Check for new scope
             if (!empty($scope) && $currentTagClassName !== $scope) {
-                // @TODO overlapping of prefix class name for higher classes (class5)
-                $localVars['class5'] = $scope.static::$classJoiner.$localVars['class5'];
-                $localVars['class4'] = $scope.static::$classJoiner.$localVars['class4'];
-                $localVars['class3'] = $scope.static::$classJoiner.$localVars['class3'];
-                $localVars['class2'] = $scope.static::$classJoiner.$localVars['class2'];
-                $localVars['class1'] = $scope.static::$classJoiner.$localVars['class1'];
-                $localVars['class']  = $scope.static::$classJoiner.$localVars['class'];
+                if (!strstr($classJoiner.$localVars['class5'], $scope)) $localVars['class5'] = $scope.static::$classJoiner.$localVars['class5'];
+                if (!strstr($classJoiner.$localVars['class4'], $scope)) $localVars['class4'] = $scope.static::$classJoiner.$localVars['class4'];
+                if (!strstr($classJoiner.$localVars['class3'], $scope)) $localVars['class3'] = $scope.static::$classJoiner.$localVars['class3'];
+                if (!strstr($classJoiner.$localVars['class2'], $scope)) $localVars['class2'] = $scope.static::$classJoiner.$localVars['class2'];
+                if (!strstr($classJoiner.$localVars['class1'], $scope)) $localVars['class1'] = $scope.static::$classJoiner.$localVars['class1'];
+                if (!strstr($classJoiner.$localVars['class'], $scope)) $localVars['class']  = $scope.static::$classJoiner.$localVars['class'];
+            }
+
+            // Remove overlapping parent prefixes in the class names
+            foreach (['class', 'class1', 'class2', 'class3', 'class4', 'class5'] as $_class) {
+                foreach ($this->className as $_classNameNode) {
+                    $localVars[$_class] = str_replace($_classNameNode.static::$classJoiner.$_classNameNode, $_classNameNode, $localVars[$_class]);
+                }
             }
 
             // Load template
