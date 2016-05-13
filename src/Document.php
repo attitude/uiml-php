@@ -211,9 +211,13 @@ class Document
             }
 
             // Remove overlapping parent prefixes in the class names
+            $classNameCount = count($this->className);
+
             foreach (['class', 'class1', 'class2', 'class3', 'class4', 'class5'] as $_class) {
-                foreach ($this->className as $_classNameNode) {
-                    $localVars[$_class] = str_replace($_classNameNode.static::$classJoiner.$_classNameNode, $_classNameNode, $localVars[$_class]);
+                foreach ($this->className as $i => $_classNameNode) {
+                    if ($i < $classNameCount - 1) {
+                        $localVars[$_class] = str_replace($_classNameNode.static::$classJoiner.$_classNameNode, $_classNameNode, $localVars[$_class]);
+                    }
                 }
             }
 
