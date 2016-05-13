@@ -198,7 +198,11 @@ class Document
             $localVars['class1'] = implode(static::$classJoiner, array_slice($this->className, -1));
 
             // Default class variable to be passed down to tag template
-            $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength));
+            if (@$localVars['inherit'] && is_numeric($localVars['inherit']) && $localVars['inherit'] > 0) {
+                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * (int) $localVars['inherit']));
+            } else {
+                $localVars['class'] = implode(static::$classJoiner, array_slice($this->className, -1 * static::$classLength));
+            }
 
             // Check for new scope
             if (!empty($scope) && $currentTagClassName !== $scope) {
