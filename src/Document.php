@@ -150,6 +150,13 @@ class Document
             // Find most relevant tag template, more specific is used
             foreach ($this->priorityTags as $tagRegex => $tag) {
                 if (preg_match('/'.$tagRegex.'/', implode(static::$classJoiner, $this->breadcrumbs), $match)) {
+                    $_nodeNameSpecific = trim(preg_replace('|'.$nodeName.'$|', '', $this->priorityTags[$tagRegex]), static::$classJoiner);
+
+                    // Skip false positives when $classJoiner == $tagJoiner and 'some-tag' might be similar to 'site > tag'
+                    if (!empty($_nodeNameSpecific) && !in_array($_nodeNameSpecific, $this->breadcrumbs)) {
+                        continue;
+                    }
+
                     if ($nodeNameSpecificity === null || (substr_count($match[0], static::$tagJoiner) < $nodeNameSpecificity)) {
                         $nodeNameSpecificity = substr_count($match[0], static::$tagJoiner) - substr_count($tagRegex, static::$tagJoiner);
                         $nodeNameSpecific = $this->priorityTags[$tagRegex];
