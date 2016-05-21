@@ -58,6 +58,10 @@ class Document
      */
     public static $classLength  = 2;
 
+    /**
+     * Default is to format HTML output
+     */
+    public static $formatOutput = true;
 
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
@@ -106,7 +110,7 @@ class Document
 
             $dom = new \DOMDocument("1.0");
             $dom->preserveWhiteSpace = false;
-            $dom->formatOutput = true;
+            $dom->formatOutput = !! static::$formatOutput;
             $dom->loadXML($expanded->asXML());
 
             return preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
