@@ -113,9 +113,21 @@ class Document
             $dom->formatOutput = !! static::$formatOutput;
             $dom->loadXML($expanded->asXML());
 
-            return preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
+            $rePairs = [
+                '>' => '___ESCAPE_CHAR_GT___',
+                '<' => '___ESCAPE_CHAR_LT___',
+                '&' => '___ESCAPE_CHAR_AMP___'
+            ];
+
+            $rePairsInverse = array_flip($rePairs);
+
+            foreach($dom->getElementsByTagName('script') as $script){
+                $script->nodeValue = strtr($script->nodeValue, $rePairs);
+            }
+
+            return strtr(preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
                 return mb_convert_encoding($v[0], "UTF-8", "HTML-ENTITIES");
-            }, $dom->saveXML($dom, LIBXML_NOEMPTYTAG))));
+            }, $dom->saveXML($dom, LIBXML_NOEMPTYTAG)))), $rePairsInverse);
         } catch (\Exception $e) {
             return $e->getMessage();
         }
