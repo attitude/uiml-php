@@ -133,6 +133,14 @@ class Document
         }
     }
 
+    /**
+     * Expands Tag
+     *
+     * @param SimpleXMLElement $node Tag node to expand
+     * @param string $scope Starts a new naming scope
+     * @return SimpleXMLElement New expanded tree node
+     *
+     */
     protected function expand(SimpleXMLElement $node, $scope = '')
     {
         if ((int) static::$classLength < 1) {
@@ -350,6 +358,14 @@ class Document
         return lcfirst(implode('', array_map('ucfirst', explode(' ', trim(strtr($value, $separators, str_repeat(' ', strlen($separators))))))));
     }
 
+    /**
+     * Loads view/template from file
+     *
+     * @param string $view View/template name
+     * @param array $args Setup arguments
+     * @return SimpleXMLElement
+     *
+     */
     protected function loadView($view, array $args = [])
     {
         $viewFile = $this->path.'/'.$view.'.'.$this->ext;
@@ -366,6 +382,14 @@ class Document
         }
     }
 
+    /**
+     * Loads UIML file directly
+     *
+     * @param string $file Path to view/template file
+     * @param array $args Extra setup arguments
+     * @return SimpleXMLElement
+     *
+     */
     public function loadUIML($file, array $args = [])
     {
         libxml_use_internal_errors(true);
