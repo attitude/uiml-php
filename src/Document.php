@@ -31,6 +31,11 @@ class Document
     ];
 
     /**
+     * List of node attributes to pass down to expanded node
+     */
+    public static $passAttrs = ['class'];
+
+    /**
      * Skip these tags for tag-to-class conversion when expanding UIML tag
      *
      * Use `*` to skip all
@@ -97,6 +102,14 @@ class Document
 
     public function __toString()
     {
+        foreach (static::$passAttrs as $value) {
+            if (!is_string($value) || strlen(trim($value)) === 0) {
+                throw new \Exception("Attribute must be a non-empty string", 1);
+            }
+        }
+
+        static::$passAttrs = array_unique(static::$passAttrs);
+
         try {
             $expanded = $this->expand($this->tree);
 
@@ -157,7 +170,7 @@ class Document
 
         // Node argsuments
         $localVars = (array) $node->attributes();
-        $localVars = (array) $localVars['@attributes'];
+        $localVars = isset($localVars['@attributes']) ? $localVars['@attributes'] : [];
 
         $localVars['__proto__'] = $localVars;
 
@@ -274,6 +287,14 @@ class Document
                 $yieldNode->remove();
             }
 
+            foreach (static::$passAttrs as $passAttr) {
+                if ($passAttr === 'class' || !isset($localVars[$passAttr]) || $template[$passAttr]) {
+                    continue;
+                }
+
+                $template->addAttribute($passAttr, $localVars[$passAttr]);
+            }
+
             // Pass class
             if ($localVars['class']) {
                 if (!$template['class']) {
@@ -306,10 +327,6 @@ class Document
         // Node argsuments again
         $nodeAttrs = (array) $node->attributes();
         $nodeAttrs = isset($nodeAttrs['@attributes']) ? $nodeAttrs['@attributes'] : [];
-
-        if (!$nodeAttrs) {
-            $nodeAttrs = [];
-        }
 
         // Process text nodes
         if($node->count() > 0) {
