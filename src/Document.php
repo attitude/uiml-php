@@ -151,6 +151,10 @@ class Document
         // Node name
         $nodeName = $originalNodeName = $node->getName();
 
+        if (!$nodeName) {
+            return $node;
+        }
+
         // Node argsuments
         $localVars = (array) $node->attributes();
         $localVars = (array) $localVars['@attributes'];
@@ -230,12 +234,12 @@ class Document
 
             // Check for new scope
             if (!empty($scope) && $currentTagClassName !== $scope) {
-                if (!strstr($classJoiner.$localVars['class5'], $scope)) $localVars['class5'] = $scope.static::$classJoiner.$localVars['class5'];
-                if (!strstr($classJoiner.$localVars['class4'], $scope)) $localVars['class4'] = $scope.static::$classJoiner.$localVars['class4'];
-                if (!strstr($classJoiner.$localVars['class3'], $scope)) $localVars['class3'] = $scope.static::$classJoiner.$localVars['class3'];
-                if (!strstr($classJoiner.$localVars['class2'], $scope)) $localVars['class2'] = $scope.static::$classJoiner.$localVars['class2'];
-                if (!strstr($classJoiner.$localVars['class1'], $scope)) $localVars['class1'] = $scope.static::$classJoiner.$localVars['class1'];
-                if (!strstr($classJoiner.$localVars['class'], $scope)) $localVars['class']  = $scope.static::$classJoiner.$localVars['class'];
+                if (!strstr(static::$classJoiner.$localVars['class5'], $scope)) $localVars['class5'] = $scope.static::$classJoiner.$localVars['class5'];
+                if (!strstr(static::$classJoiner.$localVars['class4'], $scope)) $localVars['class4'] = $scope.static::$classJoiner.$localVars['class4'];
+                if (!strstr(static::$classJoiner.$localVars['class3'], $scope)) $localVars['class3'] = $scope.static::$classJoiner.$localVars['class3'];
+                if (!strstr(static::$classJoiner.$localVars['class2'], $scope)) $localVars['class2'] = $scope.static::$classJoiner.$localVars['class2'];
+                if (!strstr(static::$classJoiner.$localVars['class1'], $scope)) $localVars['class1'] = $scope.static::$classJoiner.$localVars['class1'];
+                if (!strstr(static::$classJoiner.$localVars['class'], $scope)) $localVars['class']  = $scope.static::$classJoiner.$localVars['class'];
             }
 
             // Remove overlapping parent prefixes in the class names
@@ -301,7 +305,7 @@ class Document
 
         // Node argsuments again
         $nodeAttrs = (array) $node->attributes();
-        $nodeAttrs = $nodeAttrs['@attributes'];
+        $nodeAttrs = isset($nodeAttrs['@attributes']) ? $nodeAttrs['@attributes'] : [];
 
         if (!$nodeAttrs) {
             $nodeAttrs = [];

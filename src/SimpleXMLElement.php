@@ -103,7 +103,7 @@ class SimpleXMLElement extends \SimpleXMLElement
         }
     }
 
-    public function asXML()
+    public function asXML($filename = null)
     {
         return preg_replace("|<\?xml.*?\?>\n|isU", '', parent::asXML());
     }
