@@ -36,6 +36,11 @@ class Document
     public static $passAttrs = ['class'];
 
     /**
+     * List of allowed empty tags
+     */
+    public static $emptyTags = [];
+
+    /**
      * Skip these tags for tag-to-class conversion when expanding UIML tag
      *
      * Use `*` to skip all
@@ -109,6 +114,9 @@ class Document
         }
 
         static::$passAttrs = array_unique(static::$passAttrs);
+        static::$emptyTags = array_merge(static::$emptyTags, [
+            'meta', 'img', 'link', 'script'
+        ]);
 
         try {
             $expanded = $this->expand($this->tree);
@@ -328,7 +336,6 @@ class Document
         $nodeAttrs = (array) $node->attributes();
         $nodeAttrs = isset($nodeAttrs['@attributes']) ? $nodeAttrs['@attributes'] : [];
 
-        // Process text nodes
         if($node->count() > 0) {
             $domNode = dom_import_simplexml($node);
             $nodeString = '';
@@ -339,16 +346,23 @@ class Document
             }
 
             foreach ($domNode->childNodes as $domNodeItem) {
+                // Process text nodes
                 if ($domNodeItem->nodeType !== 1) {
                     $nodeString .= $domNodeItem->nodeValue;
                 } else {
-                    $newXMLChild = $this->expand(simplexml_import_dom($domNodeItem, __NAMESPACE__.'\SimpleXMLElement'), $scope);
-                    $nodeString.= $newXMLChild->asXML();
+                    if ($domNodeItem->childNodes->length > 0 || in_array($domNodeItem->tagName, static::$emptyTags)) {
+                        $newXMLChild = $this->expand(simplexml_import_dom($domNodeItem, __NAMESPACE__.'\SimpleXMLElement'), $scope);
+                        $nodeString.= is_string($newXMLChild) ? $newXMLChild : $newXMLChild->asXML();
+                    }
                 }
             }
 
             // Create new instance
             $newNode = simplexml_load_string('<'.$nodeName.'>'.$nodeString.'</'.$nodeName.'>', __NAMESPACE__.'\SimpleXMLElement');
+
+            if ($newNode->count() === 0 && !in_array($newNode->getName(), static::$emptyTags)) {
+                return '';
+            }
 
             // Clone attributes
             foreach ($nodeAttrs as $k => $v) {
