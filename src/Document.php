@@ -194,7 +194,7 @@ class Document
                     $_nodeNameSpecific = trim(preg_replace('|'.$nodeName.'$|', '', $this->priorityTags[$tagRegex]), static::$classJoiner);
 
                     // Skip false positives when $classJoiner == $tagJoiner and 'some-tag' might be similar to 'site > tag'
-                    if (!empty($_nodeNameSpecific) && !in_array($_nodeNameSpecific, $this->breadcrumbs)) {
+                    if (!empty($nodeNameSpecific) && !in_array($_nodeNameSpecific, $this->breadcrumbs)) {
                         continue;
                     }
 
