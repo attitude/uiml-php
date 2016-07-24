@@ -361,6 +361,12 @@ class Document
             $newNode = simplexml_load_string('<'.$nodeName.'>'.$nodeString.'</'.$nodeName.'>', __NAMESPACE__.'\SimpleXMLElement');
 
             if ($newNode->count() === 0 && !in_array($newNode->getName(), static::$emptyTags)) {
+                array_pop($this->breadcrumbs);
+
+                if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($originalNodeName, $this->tags)) {
+                    array_pop($this->className);
+                }
+
                 return '';
             }
 
