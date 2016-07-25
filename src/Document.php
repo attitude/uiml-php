@@ -206,7 +206,7 @@ class Document
                         continue;
                     }
 
-                    if ($nodeNameSpecificity === null || (substr_count($match[0], static::$tagJoiner) < $nodeNameSpecificity)) {
+                    if ($nodeNameSpecific === null && ($nodeNameSpecificity === null || (substr_count($match[0], static::$tagJoiner) < $nodeNameSpecificity))) {
                         $nodeNameSpecificity = substr_count($match[0], static::$tagJoiner) - substr_count($tagRegex, static::$tagJoiner);
                         $nodeNameSpecific = $this->priorityTags[$tagRegex];
                     }
