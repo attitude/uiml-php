@@ -101,7 +101,7 @@ class Document
         });
 
         $this->priorityTags = array_combine(array_map(function($f) {
-            return str_replace(static::$tagJoiner, static::$tagJoiner.'.*?', $f).'$';
+            return '\b'.str_replace(static::$tagJoiner, static::$tagJoiner.'.*?\b', $f).'$';
         }, $this->priorityTags), $this->priorityTags);
     }
 
