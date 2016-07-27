@@ -115,7 +115,7 @@ class Document
 
         static::$passAttrs = array_unique(static::$passAttrs);
         static::$emptyTags = array_merge(static::$emptyTags, [
-            'meta', 'img', 'link', 'script'
+            'yeild', 'meta', 'img', 'link', 'script'
         ]);
 
         try {
@@ -190,6 +190,9 @@ class Document
 
         // Add node name to full breadcrumb array
         $this->breadcrumbs[] = $nodeName;
+
+        // Innner Content
+        $localVars['yield'] = (string) $node;
 
         // Expand with template
         try {
