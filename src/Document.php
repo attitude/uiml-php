@@ -360,7 +360,7 @@ class Document
             // Create new instance
             $newNode = simplexml_load_string('<'.$nodeName.'>'.$nodeString.'</'.$nodeName.'>', __NAMESPACE__.'\SimpleXMLElement');
 
-            if ($newNode->count() === 0 && !in_array($newNode->getName(), static::$emptyTags)) {
+            if ($newNode->count() === 0 && empty($nodeString) && !in_array($newNode->getName(), static::$emptyTags)) {
                 array_pop($this->breadcrumbs);
 
                 if ($nodeNameSpecific && in_array($nodeNameSpecific, $this->tags) || in_array($originalNodeName, $this->tags)) {
