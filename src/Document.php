@@ -38,7 +38,7 @@ class Document
     /**
      * List of allowed empty tags
      */
-    public static $emptyTags = [];
+    public static $emptyTags = ['textarea'];
 
     /**
      * Skip these tags for tag-to-class conversion when expanding UIML tag
