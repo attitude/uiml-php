@@ -27,7 +27,8 @@ class Document
      */
     public static $voidTags = [
         'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
-        'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'
+        'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr',
+        'yeild', 'link'
     ];
 
     /**
@@ -38,7 +39,7 @@ class Document
     /**
      * List of allowed empty tags
      */
-    public static $emptyTags = ['textarea'];
+    public static $emptyTags = [];
 
     /**
      * Skip these tags for tag-to-class conversion when expanding UIML tag
@@ -114,9 +115,7 @@ class Document
         }
 
         static::$passAttrs = array_unique(static::$passAttrs);
-        static::$emptyTags = array_merge(static::$emptyTags, [
-            'yeild', 'meta', 'img', 'link', 'script'
-        ]);
+        static::$emptyTags = array_merge(static::$emptyTags, static::$voidTags, ['script', 'textarea']);
 
         try {
             $expanded = $this->expand($this->tree);
