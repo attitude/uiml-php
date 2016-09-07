@@ -74,19 +74,18 @@ class Document
      */
     public static $formatOutput = true;
 
-    public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
+    public function __construct($page = 'index', $path = 'tags', $ext = '.php')
     {
         libxml_use_internal_errors(true);
 
         if (!is_string($path) || !realpath($path) || !is_dir($path)) {
-            throw new \Exception('Expecting string as argument', 400);
+            throw new \Exception('Expecting path string as second argument', 400);
         }
 
         if (!is_string($ext) || trim(strlen($ext), ' .*') === 0) {
             throw new \Exception('Extension must be non-empty string', 500);
         }
 
-        $this->tree    = $view;
         $this->path    = realpath($path);
         $this->ext     = trim($ext, ' .*');
 
@@ -106,6 +105,18 @@ class Document
         $this->priorityTags = array_combine(array_map(function($f) {
             return '\b'.str_replace(static::$tagJoiner, static::$tagJoiner.'.*?\b', $f).'$';
         }, $this->priorityTags), $this->priorityTags);
+
+        if (is_string($page)) {
+            if (!is_string($page) || !realpath($page)) {
+                throw new \Exception('Expecting path string as first argument', 400);
+            }
+
+            $page = $this->loadUIML($page, [], true);
+        } elseif (is_object($page) && get_class($page) !== 'SimpleXMLElement') {
+            throw new \Exception("Document class expects parameter 1 to be SimpleXMLElement or path to page", 500);
+        }
+
+        $this->tree = $page;
     }
 
     public function __toString()
