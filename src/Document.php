@@ -18,6 +18,11 @@ class Document
     protected $priorityTags = [];
 
     /**
+     * List of extracted HTML comments from the HTML
+     */
+    protected static $htmlComments = [];
+
+    /**
      * List of filters (callable functions)
      */
     protected $filters = [];
@@ -167,9 +172,11 @@ class Document
                 }
             }
 
-            return strtr(preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
+            return preg_replace_callback('|<simplexml_compatible_comment>(.*?)</simplexml_compatible_comment>|s', function (array $match) {
+                return isset(static::$htmlComments[$match[1]]) ? '<!--'.static::$htmlComments[$match[1]].'-->' : '';
+            }, strtr(preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
                 return mb_convert_encoding($v[0], "UTF-8", "HTML-ENTITIES");
-            }, $dom->saveXML($dom, LIBXML_NOEMPTYTAG)))), $rePairsInverse);
+            }, $dom->saveXML($dom, LIBXML_NOEMPTYTAG)))), $rePairsInverse));
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -490,6 +497,13 @@ class Document
         include $file;
         $html = trim(ob_get_contents());
         ob_end_clean();
+
+        $html = preg_replace_callback('/<!--(.*?)-->/s', function (array $match) {
+            $hash = hash('sha256', $match[1]);
+            static::$htmlComments[$hash] = $match[1];
+
+            return "<simplexml_compatible_comment>{$hash}</simplexml_compatible_comment>";
+        }, $html);
 
         if (isset($this->filters['tag']) && !empty($this->filters['tag'])) {
             foreach ($this->filters['tag'] as $filter) {
