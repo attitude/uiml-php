@@ -121,16 +121,16 @@ class Document
 
     public function __toString()
     {
-        foreach (static::$passAttrs as $value) {
-            if (!is_string($value) || strlen(trim($value)) === 0) {
-                throw new \Exception("Attribute must be a non-empty string", 1);
-            }
-        }
-
-        static::$passAttrs = array_unique(static::$passAttrs);
-        static::$emptyTags = array_merge(static::$emptyTags, static::$voidTags, ['script', 'textarea']);
-
         try {
+            foreach (static::$passAttrs as $value) {
+                if (!is_string($value) || strlen(trim($value)) === 0) {
+                    throw new \Exception("Attribute must be a non-empty string", 1);
+                }
+            }
+
+            static::$passAttrs = array_unique(static::$passAttrs);
+            static::$emptyTags = array_merge(static::$emptyTags, static::$voidTags, ['script', 'textarea']);
+
             $expanded = $this->expand($this->tree);
 
             if (!$expanded) {
