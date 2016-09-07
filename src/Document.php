@@ -76,6 +76,8 @@ class Document
 
     public function __construct(SimpleXMLElement $view, $path, $ext = '.php')
     {
+        libxml_use_internal_errors(true);
+
         if (!is_string($path) || !realpath($path) || !is_dir($path)) {
             throw new \Exception('Expecting string as argument', 400);
         }
