@@ -463,7 +463,7 @@ class Document
         }
 
         try {
-            return self::loadUIML($viewFile, $args);
+            return $this->loadUIML($viewFile, $args);
         } catch (\Exception $e) {
             throw new \Exception("Unable to load view ${view}", 404);
         }
