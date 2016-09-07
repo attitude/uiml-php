@@ -147,12 +147,43 @@ class Document
                 $script->nodeValue = strtr($script->nodeValue, $rePairs);
             }
 
+            // Replace deep nested `a` nodes with `span` nodes
+            foreach ($dom->getElementsByTagName('a') as $_a) {
+                $nodeList = $_a->getElementsByTagName('a');
+
+                while ($nodeList->length > 0) {
+                    static::renameTag($nodeList->item(0), 'span');
+                }
+            }
+
             return strtr(preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
                 return mb_convert_encoding($v[0], "UTF-8", "HTML-ENTITIES");
             }, $dom->saveXML($dom, LIBXML_NOEMPTYTAG)))), $rePairsInverse);
         } catch (\Exception $e) {
             return $e->getMessage();
         }
+    }
+
+    public static function renameTag(\DOMElement $node, $name)
+    {
+        $childnodes = array();
+
+        foreach ($node->childNodes as $child){
+            $childnodes[] = $child;
+        }
+
+        $newnode = $node->ownerDocument->createElement($name);
+
+        foreach ($childnodes as $child){
+            $child2 = $node->ownerDocument->importNode($child, true);
+            $newnode->appendChild($child2);
+        }
+
+        foreach ($node->attributes as $attrName => $attrNode) {
+            $newnode->setAttribute($attrName, $attrNode->nodeValue);
+        }
+
+        $node->parentNode->replaceChild($newnode, $node);
     }
 
     /**
