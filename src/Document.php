@@ -143,7 +143,7 @@ class Document
 
             $rePairsInverse = array_flip($rePairs);
 
-            foreach($dom->getElementsByTagName('script') as $script){
+            foreach ($dom->getElementsByTagName('script') as $script){
                 $script->nodeValue = strtr($script->nodeValue, $rePairs);
             }
 
