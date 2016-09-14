@@ -84,7 +84,7 @@ class Document
         libxml_use_internal_errors(true);
 
         if (!is_string($path) || !realpath($path) || !is_dir($path)) {
-            throw new \Exception('Expecting path string as second argument', 400);
+            throw new \Exception('Expecting real dir path string as second argument', 400);
         }
 
         if (!is_string($ext) || trim(strlen($ext), ' .*') === 0) {
@@ -112,8 +112,12 @@ class Document
         }, $this->priorityTags), $this->priorityTags);
 
         if (is_string($page)) {
-            if (!is_string($page) || !realpath($page)) {
+            if (!is_string($page)) {
                 throw new \Exception('Expecting path string as first argument', 400);
+            }
+
+            if (!realpath($page)) {
+                throw new \Exception('Unable to locate the document', 404);
             }
 
             $page = $this->loadUIML($page, [], true);
