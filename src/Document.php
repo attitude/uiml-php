@@ -405,7 +405,7 @@ class Document
             foreach ($domNode->childNodes as $domNodeItem) {
                 // Process text nodes
                 if ($domNodeItem->nodeType !== 1) {
-                    $nodeString .= $domNodeItem->nodeValue;
+                    $nodeString .= preg_replace('|(\s)+|', '$1', $domNodeItem->nodeValue);
                 } else {
                     if ($domNodeItem->childNodes->length > 0 || in_array($domNodeItem->tagName, static::$emptyTags)) {
                         $newXMLChild = $this->expand(simplexml_import_dom($domNodeItem, __NAMESPACE__.'\SimpleXMLElement'), $scope);
@@ -415,7 +415,7 @@ class Document
             }
 
             // Create new instance
-            $newNode = simplexml_load_string('<'.$nodeName.'>'.$nodeString.'</'.$nodeName.'>', __NAMESPACE__.'\SimpleXMLElement');
+            $newNode = simplexml_load_string('<'.$nodeName.'>'.trim($nodeString).'</'.$nodeName.'>', __NAMESPACE__.'\SimpleXMLElement');
 
             if ($newNode->count() === 0 && empty($nodeString) && !in_array($newNode->getName(), static::$emptyTags)) {
                 array_pop($this->breadcrumbs);
