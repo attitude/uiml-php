@@ -25,7 +25,7 @@ class Document
     /**
      * List of filters (callable functions)
      */
-    protected $filters = [];
+    protected static $filters = [];
 
     /**
      * List of HTML5 void tags
@@ -121,8 +121,8 @@ class Document
             }
 
             $page = $this->loadUIML($page, [], true);
-        } elseif (is_object($page) && get_class($page) !== 'SimpleXMLElement') {
-            throw new \Exception("Document class expects parameter 1 to be SimpleXMLElement or path to page", 500);
+        } elseif (is_object($page) && get_class($page) !== 'UIML\SimpleXMLElement') {
+            throw new \Exception("Document class expects parameter 1 to be UIML\SimpleXMLElement or path to page. ".get_class($page)." given.", 500);
         }
 
         $this->tree = $page;
@@ -509,8 +509,10 @@ class Document
             return "<simplexml_compatible_comment>{$hash}</simplexml_compatible_comment>";
         }, $html);
 
-        if (isset($this->filters['tag']) && !empty($this->filters['tag'])) {
-            foreach ($this->filters['tag'] as $filter) {
+        $html = iconv('UTF-8', 'UTF-8//IGNORE', $html);
+
+        if (isset(static::$filters['tag']) && !empty(static::$filters['tag'])) {
+            foreach (static::$filters['tag'] as $filter) {
                 $html = call_user_func($filter, $html);
             }
         }
@@ -543,11 +545,9 @@ class Document
      * @param callable $f Callable filter to register
      *
      */
-    public function registerTagFilter(callable $f)
+    public static function registerTagFilter(callable $f)
     {
-        $this->registerFilter($f, 'tag');
-
-        return $this;
+        static::registerFilter($f, 'tag');
     }
 
     /**
@@ -557,18 +557,16 @@ class Document
      * @param string $type Namespace for filter
      *
      */
-    protected function registerFilter(callable $f, $type = 'default')
+    protected static function registerFilter(callable $f, $type = 'default')
     {
         if (!is_string($type) || strlen(trim($type)) === 0) {
             throw new \Exception("Type must be a non-empty string", 500);
         }
 
-        if (!isset($this->filters[$type])) {
-            $this->filters[$type] = [];
+        if (!isset(static::$filters[$type])) {
+            static::$filters[$type] = [];
         }
 
-        $this->filters[$type][] = $f;
-
-        return $this;
+        static::$filters[$type][] = $f;
     }
 }
