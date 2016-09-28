@@ -176,11 +176,13 @@ class Document
                 }
             }
 
+            $html = preg_replace('|\s([,\.?!]+[\s<])|ms', '$1', $dom->saveXML($dom, LIBXML_NOEMPTYTAG));
+
             return preg_replace_callback('|<simplexml_compatible_comment>(.*?)</simplexml_compatible_comment>|s', function (array $match) {
                 return isset(static::$htmlComments[$match[1]]) ? '<!--'.static::$htmlComments[$match[1]].'-->' : '';
             }, strtr(preg_replace('#</(?:'.implode('|', (array) static::$voidTags).')>#', '', preg_replace("|<\?xml.*?\?>\n|", '', preg_replace_callback('|&#x[0-9ABCDEF]+;|', function($v) {
                 return mb_convert_encoding($v[0], "UTF-8", "HTML-ENTITIES");
-            }, $dom->saveXML($dom, LIBXML_NOEMPTYTAG)))), $rePairsInverse));
+            }, $html))), $rePairsInverse));
         } catch (\Exception $e) {
             return $e->getMessage();
         }
